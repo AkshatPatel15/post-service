@@ -2,8 +2,12 @@ package com.teqmonic.spring.jpa.entity;
 
 import java.time.LocalDateTime;
 
+import com.teqmonic.spring.utils.Status;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,6 +43,10 @@ public class CommentEntity extends BaseEntity {
 	@Size(max = 50, message = "Review must be atmost 50 characters")
 	@Column(name = "review")
 	private String review;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status")
+	private Status status;
 	
 	@Column(name = "createdDateTime")
 	private LocalDateTime createdDateTime;
