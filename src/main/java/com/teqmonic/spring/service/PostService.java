@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import com.teqmonic.spring.jpa.entity.CommentEntity;
@@ -20,6 +21,8 @@ import com.teqmonic.spring.model.PostProjection;
 import com.teqmonic.spring.utils.Status;
 
 
+
+
 @Service
 public class PostService {
 
@@ -27,13 +30,20 @@ public class PostService {
 	private PostRepository postRepository;
 	
 	/**
-	 * Persists Post object into the database
+	 * Persists Post object into the database. The method should be Idempotent.
 	 * 
 	 * @param post
 	 * @return
 	 */
+	@Transactional
 	public long savePosts(Post post) {
-
+        // Idempotent check
+		Optional<PostEntity> optionalPostEntity = postRepository.findByName(post.getName());
+		if (optionalPostEntity.isPresent()) {
+			System.out.println("Post entity is already available for the given name: " + optionalPostEntity.get().getName());
+			return optionalPostEntity.get().getId();
+		}
+		
 		PostEntity postEntity = new PostEntity();
 		postEntity.setContent(post.getContent());
 		postEntity.setName(post.getName());
@@ -43,9 +53,10 @@ public class PostService {
 		PostEntity postEntityResponse = postRepository.save(postEntity);
         return postEntityResponse.getId();
 	}
-	
+
 	/**
-	 * Retrieves Post object for the given Post id
+	 * Retrieves Post object for the given Post id. Ensure there is only unique
+	 * entity is created using Idempotent check.
 	 * 
 	 * @param id
 	 * @return
@@ -101,7 +112,12 @@ public class PostService {
 		postRepository.deleteById(id);
 	}
 	
-	
+	/**
+	 * @param id
+	 * @param post
+	 * @return
+	 */
+	@Transactional
 	public boolean updatePost(long id, Post post) {
 		Optional<PostEntity> optionalPostEntity = postRepository.findById(id);
 		if(optionalPostEntity.isPresent()) {
