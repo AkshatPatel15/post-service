@@ -9,13 +9,18 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import com.teqmonic.spring.jpa.entity.CommentEntity;
 import com.teqmonic.spring.jpa.entity.PostEntity;
-import com.teqmonic.spring.jpa.model.Comment;
-import com.teqmonic.spring.jpa.model.Post;
 import com.teqmonic.spring.jpa.repositories.PostRepository;
+import com.teqmonic.spring.model.Comment;
+import com.teqmonic.spring.model.Post;
+import com.teqmonic.spring.model.PostProjection;
+import com.teqmonic.spring.utils.Status;
+
+
 
 
 @Service
@@ -25,25 +30,33 @@ public class PostService {
 	private PostRepository postRepository;
 	
 	/**
-	 * Persists Post object into the database
+	 * Persists Post object into the database. The method should be Idempotent.
 	 * 
 	 * @param post
 	 * @return
 	 */
+	@Transactional
 	public long savePosts(Post post) {
-
+        // Idempotent check
+		Optional<PostEntity> optionalPostEntity = postRepository.findByNameIgnoreCase(post.getName());
+		if (optionalPostEntity.isPresent()) {
+			System.out.println("Post entity is already available for the given name: " + optionalPostEntity.get().getName());
+			return optionalPostEntity.get().getId();
+		}
+		
 		PostEntity postEntity = new PostEntity();
 		postEntity.setContent(post.getContent());
 		postEntity.setName(post.getName());
 		postEntity.setComments(buildComments(post.getComments(), postEntity));
 		postEntity.setCreatedDate(LocalDateTime.now(UTC_ZONE));
-
+		
 		PostEntity postEntityResponse = postRepository.save(postEntity);
         return postEntityResponse.getId();
 	}
-	
+
 	/**
-	 * Retrieves Post object for the given Post id
+	 * Retrieves Post object for the given Post id. Ensure there is only unique
+	 * entity is created using Idempotent check.
 	 * 
 	 * @param id
 	 * @return
@@ -59,11 +72,34 @@ public class PostService {
 			post.setName(postEntity.getName());
 			// build Comments
 			List<Comment> comments = postEntity.getComments().stream().map(commentEntity -> Comment.builder().review(commentEntity.getReview())
-					.createdDateTime(commentEntity.getCreatedDateTime()).build()).toList();
+					.createdDateTime(commentEntity.getCreatedDateTime()).status(commentEntity.getStatus()) .build()).toList();
 			post.setComments(comments);
 		}
 		return post;
+	}
+	
+	public Post getPost(String name) {
+		Optional<PostEntity> optionalPostEntity = postRepository.findByNameIgnoreCase(name);
 		
+		Post post = new Post();
+		if(optionalPostEntity.isPresent()) {
+			PostEntity postEntity = optionalPostEntity.get();
+			post.setContent(postEntity.getContent());
+			post.setCreatedDate(postEntity.getCreatedDate());
+			post.setName(postEntity.getName());
+			// build Comments
+			List<Comment> comments = postEntity.getComments().stream().map(commentEntity -> Comment.builder().review(commentEntity.getReview())
+					.createdDateTime(commentEntity.getCreatedDateTime()).status(commentEntity.getStatus()) .build()).toList();
+			post.setComments(comments);
+		}
+		return post;
+	}
+	
+	/**
+	 * @return
+	 */
+	public List<PostProjection> getPostWithCommentsCount() {
+		return postRepository.findPostWithCommentsCount();
 	}
 	
 	
@@ -76,7 +112,19 @@ public class PostService {
 		postRepository.deleteById(id);
 	}
 	
+	/**
+	 * @param name
+	 */
+	public boolean isPostByNameExists(String name) {
+		return postRepository.existsByNameIgnoreCase(name);
+	}
 	
+	/**
+	 * @param id
+	 * @param post
+	 * @return
+	 */
+	@Transactional
 	public boolean updatePost(long id, Post post) {
 		Optional<PostEntity> optionalPostEntity = postRepository.findById(id);
 		if(optionalPostEntity.isPresent()) {
@@ -109,8 +157,9 @@ public class PostService {
 		
 		for (Comment comment : commentList) {
 			commentEntityList.add(CommentEntity.builder().review(comment.getReview())
-					.createdDateTime(LocalDateTime.now(UTC_ZONE)).post(postEntity).build());
+					.createdDateTime(LocalDateTime.now(UTC_ZONE)).post(postEntity).status(Status.APPROVED).build());
 		}
+		
 		return commentEntityList;
 	}
 
