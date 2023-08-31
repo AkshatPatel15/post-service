@@ -48,6 +48,12 @@ public class PostController {
 		List<PostProjection> post = postService.getPostWithCommentsCount();
 		return new ResponseEntity<>(post, HttpStatus.OK);
 	}
+	
+	@GetMapping("/isPostExistsByName/{name}")
+	public ResponseEntity<Boolean> getPost(@PathVariable String name) {
+		boolean isExists =  postService.isPostByNameExists(name);
+		return new ResponseEntity<>(isExists, HttpStatus.OK);
+	}
 
 	@DeleteMapping("/post/{id}")
 	public ResponseEntity<HttpStatus> deletePost(@PathVariable long id) {

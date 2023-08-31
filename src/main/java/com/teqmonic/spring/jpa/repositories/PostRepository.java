@@ -16,5 +16,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 	@Query("Select p.name AS name, COUNT(c) AS commentsCount FROM PostEntity p JOIN p.comments c GROUP BY p.name")
 	List<PostProjection> findPostWithCommentsCount();
 	
-	Optional<PostEntity> findByName(String name);
+	Optional<PostEntity> findByNameIgnoreCase(String name);
+	
+	boolean existsByNameIgnoreCase(String name);
+	
 }

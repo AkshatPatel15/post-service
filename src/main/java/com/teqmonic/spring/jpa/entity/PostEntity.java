@@ -7,9 +7,12 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -17,6 +20,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.Singular;
 
 @Builder(toBuilder = true)
 @Entity
@@ -25,12 +29,12 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class PostEntity extends BaseEntity {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class PostEntity {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGen")
+	@SequenceGenerator(name = "seqGen", sequenceName = "post_id_seq", allocationSize = 1)
+	private Long id;
 
 	@NotBlank(message = "Post name is required")
 	@Size(max = 10, message = "Post name must be atmost 10 characters")
@@ -46,6 +50,7 @@ public class PostEntity extends BaseEntity {
 	private LocalDateTime createdDate;
 
 	// All the operations should be cascaded from Parent entity to Child entity
-	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch=FetchType.EAGER, orphanRemoval = true)
+	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch=FetchType.LAZY, orphanRemoval = true)
+	@Singular
 	private List<CommentEntity> comments;
 }

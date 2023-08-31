@@ -5,11 +5,18 @@ import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Singular;
 
+@Builder(toBuilder = true)
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Post {
 
 	@NotBlank(message = "Post name is required")
@@ -22,5 +29,6 @@ public class Post {
 
 	private LocalDateTime createdDate;
 
+	@Singular
 	private List<Comment> comments;
 }

@@ -38,7 +38,7 @@ public class PostService {
 	@Transactional
 	public long savePosts(Post post) {
         // Idempotent check
-		Optional<PostEntity> optionalPostEntity = postRepository.findByName(post.getName());
+		Optional<PostEntity> optionalPostEntity = postRepository.findByNameIgnoreCase(post.getName());
 		if (optionalPostEntity.isPresent()) {
 			System.out.println("Post entity is already available for the given name: " + optionalPostEntity.get().getName());
 			return optionalPostEntity.get().getId();
@@ -49,7 +49,7 @@ public class PostService {
 		postEntity.setName(post.getName());
 		postEntity.setComments(buildComments(post.getComments(), postEntity));
 		postEntity.setCreatedDate(LocalDateTime.now(UTC_ZONE));
-
+		
 		PostEntity postEntityResponse = postRepository.save(postEntity);
         return postEntityResponse.getId();
 	}
@@ -79,7 +79,7 @@ public class PostService {
 	}
 	
 	public Post getPost(String name) {
-		Optional<PostEntity> optionalPostEntity = postRepository.findByName(name);
+		Optional<PostEntity> optionalPostEntity = postRepository.findByNameIgnoreCase(name);
 		
 		Post post = new Post();
 		if(optionalPostEntity.isPresent()) {
@@ -110,6 +110,13 @@ public class PostService {
 	 */
 	public void deletePost(long id) {
 		postRepository.deleteById(id);
+	}
+	
+	/**
+	 * @param name
+	 */
+	public boolean isPostByNameExists(String name) {
+		return postRepository.existsByNameIgnoreCase(name);
 	}
 	
 	/**
