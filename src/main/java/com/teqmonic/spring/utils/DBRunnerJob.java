@@ -10,21 +10,21 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
 
 import com.teqmonic.spring.jpa.entity.CommentEntity;
 import com.teqmonic.spring.jpa.entity.PostEntity;
 import com.teqmonic.spring.jpa.repositories.PostRepository;
-
-public class DBRunner implements CommandLineRunner {
+@Component
+public class DBRunnerJob implements CommandLineRunner {
 	
-	private static int TOTALCOUNT = 1000;
+	private static int TOTALCOUNT = 10000;
 	@Autowired
 	private PostRepository postRepository;
 
 	@Override
 	public void run(String... args) throws Exception {
-		System.out.println("Start of bulk record insert.");
-		
+	
 		List<PostEntity> postEntityList = new ArrayList<>();
 		
 		for (int index = 0; index < TOTALCOUNT; index++) {
@@ -34,8 +34,5 @@ public class DBRunner implements CommandLineRunner {
 			postEntityList.add(postEntity);
 		}
 		postRepository.saveAll(postEntityList);
-		
-		System.out.println("Bulk record insert is completed.");
 	}
-
 }
