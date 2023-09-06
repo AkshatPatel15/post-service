@@ -1,6 +1,7 @@
 package com.teqmonic.spring.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.teqmonic.spring.model.Post;
@@ -53,6 +55,13 @@ public class PostController {
 	public ResponseEntity<Boolean> getPost(@PathVariable String name) {
 		boolean isExists =  postService.isPostByNameExists(name);
 		return new ResponseEntity<>(isExists, HttpStatus.OK);
+	}
+	
+	@GetMapping("/pagedPost")
+	public ResponseEntity<Map<String, Object>> getPost(@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "3") int size) {
+		Map<String, Object> response = postService.getpagedPost(page, size);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/post/{id}")
