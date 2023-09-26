@@ -43,7 +43,8 @@ public class PostService {
 	 */
 	@Transactional
 	public long savePosts(Post post) {
-        // Idempotent check
+       		
+		// Idempotent check
 		Optional<PostEntity> optionalPostEntity = postRepository.findByNameIgnoreCase(post.getName());
 		if (optionalPostEntity.isPresent()) {
 			System.out.println("Post entity is already available for the given name: " + optionalPostEntity.get().getName());
@@ -68,37 +69,37 @@ public class PostService {
 	 * @return
 	 */
 	public Post getPost(long id) {
-		Optional<PostEntity> optionalPostEntity = postRepository.findById(id);
-		
-		Post post = new Post();
-		if(optionalPostEntity.isPresent()) {
-			PostEntity postEntity = optionalPostEntity.get();
-			post.setContent(postEntity.getContent());
-			post.setCreatedDate(postEntity.getCreatedDate());
-			post.setName(postEntity.getName());
-			// build Comments
-			List<Comment> comments = postEntity.getComments().stream().map(commentEntity -> Comment.builder().review(commentEntity.getReview())
-					.createdDateTime(commentEntity.getCreatedDateTime()).status(commentEntity.getStatus()) .build()).toList();
-			post.setComments(comments);
-		}
-		return post;
+		return Optional.ofNullable(id).map(postRepository::findById)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.map(optionalPostEntity -> 
+				{
+				   return Post.builder().content(optionalPostEntity.getContent())
+						                .createdDate(optionalPostEntity.getCreatedDate())
+						                .name(optionalPostEntity.getName())
+						              	.comments(optionalPostEntity.getComments().stream()
+									               .map(commentEntity -> Comment.builder().review(commentEntity.getReview())
+											            .createdDateTime(commentEntity.getCreatedDateTime())
+											            .status(commentEntity.getStatus()).build())
+									                    .toList())
+						                .build();
+				})
+				.orElseThrow();
 	}
 	
 	public Post getPost(String name) {
-		Optional<PostEntity> optionalPostEntity = postRepository.findByNameIgnoreCase(name);
-		
-		Post post = new Post();
-		if(optionalPostEntity.isPresent()) {
-			PostEntity postEntity = optionalPostEntity.get();
-			post.setContent(postEntity.getContent());
-			post.setCreatedDate(postEntity.getCreatedDate());
-			post.setName(postEntity.getName());
-			// build Comments
-			List<Comment> comments = postEntity.getComments().stream().map(commentEntity -> Comment.builder().review(commentEntity.getReview())
-					.createdDateTime(commentEntity.getCreatedDateTime()).status(commentEntity.getStatus()) .build()).toList();
-			post.setComments(comments);
-		}
-		return post;
+		return Optional.ofNullable(name).map(postRepository::findByNameIgnoreCase).filter(Optional::isPresent)
+				.map(Optional::get)
+				.map(optionalPostEntity -> Post.builder().content(optionalPostEntity.getContent())
+						.createdDate(optionalPostEntity.getCreatedDate())
+						.name(optionalPostEntity.getName())
+						.comments(optionalPostEntity.getComments().stream()
+					               .map(commentEntity -> Comment.builder().review(commentEntity.getReview())
+							            .createdDateTime(commentEntity.getCreatedDateTime())
+							            .status(commentEntity.getStatus()).build())
+					                    .toList())
+						.build())
+				.orElseThrow();
 	}
 	
 	/**
@@ -109,6 +110,7 @@ public class PostService {
 	public Map<String, Object> getpagedPost(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size);
 		Page<PostEntity> pagePost = postRepository.findAllPost(pageable);
+		
 		List<Post> postList = new ArrayList<>();		
 
 		pagePost.stream().forEach(postEntity -> {
@@ -164,26 +166,24 @@ public class PostService {
 	 */
 	@Transactional
 	public boolean updatePost(long id, Post post) {
-		Optional<PostEntity> optionalPostEntity = postRepository.findById(id);
-		if(optionalPostEntity.isPresent()) {
-			PostEntity postEntity = optionalPostEntity.get();
-			postEntity.setContent(post.getContent());
-			postEntity.setCreatedDate(LocalDateTime.now(UTC_ZONE));
-			postEntity.setName(post.getName());
+		
+		return Optional.ofNullable(id).map(postRepository::findById).filter(Optional::isPresent)
+		.map(Optional::get)
+		.map(optionalPostEntity -> {
+			optionalPostEntity.setContent(post.getContent());
+			optionalPostEntity.setCreatedDate(LocalDateTime.now(UTC_ZONE));
+			optionalPostEntity.setName(post.getName());
 			// build Comments
-			
 			if (!ObjectUtils.isEmpty(post.getComments())) {
-				for (CommentEntity entity : postEntity.getComments()) {
-					entity.setReview(post.getComments().get(0).getReview());
-				}
+				for (CommentEntity entity : optionalPostEntity.getComments()) {
+						entity.setReview(post.getComments().get(0).getReview());
+					}
 			}
 			// todo: If comments are present in the latest Post request, 
-			//       then delete existing comments entity and insert the comments from the request
-			postRepository.save(postEntity);
-			return true;
-		} else {
-			return false;
-		}
+						//       then delete existing comments entity and insert the comments from the request
+			return optionalPostEntity;
+		})
+		.map(postRepository::save).isPresent();
 	}
 	
 	/**
