@@ -56,12 +56,4 @@ Child table query will be executed only while accessing child object from Parent
 DTO projection is useful when you want to retrieve specific fields or calculated values from your entities without fetching the entire entity. It helps optimize database queries and reduce the overhead of transferring unnecessary data.
 
 
-
-## Authors
-
-Contributors names and contact info
-
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
-
 ## Version History
