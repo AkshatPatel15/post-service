@@ -2,6 +2,28 @@
 
 Simple overview of use/purpose.
 
+## Build image
+Image is build using the Google jib plugin
+```
+<plugin>
+ <groupId>com.google.cloud.tools</groupId>
+ <artifactId>jib-maven-plugin</artifactId>
+ <version>3.4.0</version>
+ <configuration>
+  <to>
+   <image>registry.hub.docker.com/sakthiece08/${artifactId}:${version}</image>
+  </to>
+ </configuration>
+</plugin>
+```
+Build and push the image to a container registry:
+```
+mvn compile jib:build
+```
+Optionally, if you have Docker installed, you can build to your local Docker installation, so you can inspect or run the image as any other local container:
+```
+mvn compile jib:dockerBuild
+```
 ## Description
 
 An in-depth paragraph about your project and overview of use.
