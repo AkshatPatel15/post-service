@@ -16,7 +16,7 @@ Image is build using the Google jib plugin
  </configuration>
 </plugin>
 ```
-Build and push the image to a container registry:
+Build and push the image to a container registry , here there is no dependency on local Docker Demon:
 ```
 mvn compile jib:build
 ```
