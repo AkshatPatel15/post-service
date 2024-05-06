@@ -57,7 +57,7 @@ In spring data jpa the save method is used for both persist and merge activity, 
  @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch=FetchType.EAGER, orphanRemoval = true)
  private List<CommentEntity> comments;
 
-FetchType.EAGER is being used to load both Parent and Child entities at the same time. The below JOIN query would be used only fro "findById" method and not for custom find methods (findByName)
+FetchType.EAGER is being used to load both Parent and Child entities at the same time. The below JOIN query would be used only for "findById" method and not for custom find methods (findByName)
 
 findById
  *From the logs:*
