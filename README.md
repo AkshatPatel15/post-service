@@ -68,6 +68,8 @@ findByName
 Hibernate: select p1_0.id,p1_0.content,p1_0.created_date_time,p1_0.name from post p1_0 where p1_0.id=?
 Hibernate: select c1_0.post_id,c1_0.id,c1_0.created_date_time,c1_0.review,c1_0.status from comment c1_0 where c1_0.post_id=?
 
+### Solution: Use a custom query using join fetch to load both parent and child entity at the same time
+
 
 FetchType.LAZY
 
